@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PV-Vergleichsplaner 2026</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>PV-Konfiguator <span class="badge">by Simon.W</span></h1>
+            <div class="actions">
+                <button id="saveBtn" class="btn-sec">💾 Speichern</button>
+                <button id="loadBtn" class="btn-sec">📂 Laden</button>
+            </div>
+        </header>
+
+        <!-- Neue Rechner-Sektion -->
+        <div class="calculators-section">
+            <!-- Rechner 1: Strangspannung berechnen -->
+            <div class="calculator-box">
+                <h2>🔌 Strangspannungs-Rechner</h2>
+                <p style="font-size: 0.85rem; color: #64748b;">Berechnet die maximale Strangspannung und den MPPT-Betriebsbereich</p>
+                
+                <div class="calc-grid">
+                    <div class="calc-input-group">
+                        <label>Leerlaufspannung Voc (V)</label>
+                        <input type="number" id="calc1_voc" placeholder="z.B. 49.5" step="0.1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>MPP-Spannung Vmpp (V)</label>
+                        <input type="number" id="calc1_vmpp" placeholder="z.B. 41.8" step="0.1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Anzahl Module in Reihe</label>
+                        <input type="number" id="calc1_count" placeholder="z.B. 12" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Temp.-Koeff. Voc (%/K)</label>
+                        <input type="number" id="calc1_tempcoeff_voc" placeholder="z.B. -0.27" step="0.01">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Temp.-Koeff. Vmpp (%/K)</label>
+                        <input type="number" id="calc1_tempcoeff_vmpp" placeholder="z.B. -0.34" step="0.01">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Min. Temperatur (°C)</label>
+                        <input type="number" id="calc1_mintemp" placeholder="z.B. -10" step="1" >
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Max. Temperatur (°C)</label>
+                        <input type="number" id="calc1_maxtemp" placeholder="z.B. 70" step="1" >
+                    </div>
+                    <div class="calc-input-group">
+                        <label>STC-Temperatur (°C)</label>
+                        <input type="number" id="calc1_stctemp" placeholder="Standard: 25" step="1" value="25">
+                    </div>
+                </div>
+
+                <div id="calc1_result" class="result-box" style="display: none;">
+                    <div class="label">Maximale Strangspannung (Voc bei Min-Temp)</div>
+                    <div class="value" id="calc1_voltage">0 V</div>
+                    <div class="subtext" id="calc1_details"></div>
+                </div>
+
+                <div id="calc1_mppt_result" class="mppt-range-box" style="display: none;">
+                    <h4>📊 MPPT-Betriebsbereich (Vmpp)</h4>
+                    <div class="range-display">
+                        <div class="range-item">
+                            <span class="range-label">Minimum:</span>
+                            <span class="range-value" id="calc1_vmpp_min">0 V</span>
+                            <span class="range-temp">(bei Max °C)</span>
+                        </div>
+                        <div class="range-arrow">↔️</div>
+                        <div class="range-item">
+                            <span class="range-label">Maximum:</span>
+                            <span class="range-value" id="calc1_vmpp_max">0 V</span>
+                            <span class="range-temp">(bei Min °C)</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="info-text">
+                    <strong>💡 Hinweis:</strong> Die Berechnung berücksichtigt Temperaturkorrekturen für Voc und Vmpp. Der MPPT-Bereich zeigt die Betriebsspannung bei verschiedenen Temperaturen.
+                </div>
+            </div>
+
+            <!-- Rechner 2: Modulanzahl berechnen -->
+            <div class="calculator-box">
+                <h2>📊 Modul-Anzahl-Rechner</h2>
+                <p style="font-size: 0.85rem; color: #64748b;">Berechnet die maximale Modulanzahl und prüft MPPT-Kompatibilität</p>
+                
+                <div class="calc-grid">
+                    <div class="calc-input-group">
+                        <label>Max. WR-Spannung (V)</label>
+                        <input type="number" id="calc2_maxvoltage" placeholder="z.B. 600" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Min. MPPT-Spannung (V)</label>
+                        <input type="number" id="calc2_mppt_min" placeholder="z.B. 125" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Max. MPPT-Spannung (V)</label>
+                        <input type="number" id="calc2_mppt_max" placeholder="z.B. 550" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Sicherheitsfaktor (%)</label>
+                        <input type="number" id="calc2_safety" placeholder="z.B. 95" step="1" value="95">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Leerlaufspannung Voc (V)</label>
+                        <input type="number" id="calc2_voc" placeholder="z.B. 49.5" step="0.1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>MPP-Spannung Vmpp (V)</label>
+                        <input type="number" id="calc2_vmpp" placeholder="z.B. 41.8" step="0.1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Temp.-Koeff. Voc (%/K)</label>
+                        <input type="number" id="calc2_tempcoeff_voc" placeholder="z.B. -0.27" step="0.01">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Temp.-Koeff. Vmpp (%/K)</label>
+                        <input type="number" id="calc2_tempcoeff_vmpp" placeholder="z.B. -0.34" step="0.01">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Min. Temperatur (°C)</label>
+                        <input type="number" id="calc2_mintemp" placeholder="z.B. -10" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>Max. Temperatur (°C)</label>
+                        <input type="number" id="calc2_maxtemp" placeholder="z.B. 70" step="1">
+                    </div>
+                    <div class="calc-input-group">
+                        <label>STC-Temperatur (°C)</label>
+                        <input type="number" id="calc2_stctemp" placeholder="Standard: 25" step="1">
+                    </div>
+                </div>
+
+                <div id="calc2_result" class="result-box" style="display: none;">
+                    <div class="label">Maximale Modulanzahl</div>
+                    <div class="value" id="calc2_count">0 Module</div>
+                    <div class="subtext" id="calc2_details"></div>
+                </div>
+
+                <div id="calc2_mppt_check" style="display: none;"></div>
+
+                <div id="calc2_warning" style="display: none;"></div>
+
+                <div class="info-text">
+                    <strong>💡 Hinweis:</strong> Der Rechner prüft automatisch, ob die Modulanzahl im MPPT-Bereich des Wechselrichters liegt (bei verschiedenen Temperaturen).
+                </div>
+            </div>
+        </div>
+
+       <!-- Amortisationsrechner -->
+<div class="amortization-section">
+    <div class="calculator-box amortization-box">
+        <h2>💰 Amortisationsrechner</h2>
+        <p style="font-size: 0.85rem; color: #64748b;">Berechnet die Amortisationszeit und zeigt die Wirtschaftlichkeit deiner PV-Anlage</p>
+        
+        <div class="amort-input-grid">
+            <div class="calc-input-group" style="grid-column: 1 / -1;">
+                <label>System auswählen</label>
+                <select id="amort_system_select" style="width: 100%; padding: 10px; border: 2px solid #0284c7; border-radius: 6px; font-weight: bold; background: white;">
+                    <option value="">-- Manuell eingeben --</option>
+                </select>
+            </div>
+            
+            <div class="calc-input-group">
+                <label>Anlagenkosten (€)</label>
+                <input type="number" id="amort_cost" placeholder="Wird aus System übernommen" step="1">
+            </div>
+            <div class="calc-input-group">
+                <label>Anlagenleistung (kWp)</label>
+                <input type="number" id="amort_power" placeholder="Wird aus System übernommen" step="0.1">
+            </div>
+            <div class="calc-input-group">
+                <label>Jährlicher Ertrag (kWh/kWp)</label>
+                <input type="number" id="amort_yield" placeholder="z.B. 1000" step="10">
+            </div>
+            <div class="calc-input-group">
+                <label>Eigenverbrauchsquote (%)</label>
+                <input type="number" id="amort_selfconsumption" placeholder="z.B. 30" step="1">
+                <a href="https://solar.htw-berlin.de/rechner/unabhaengigkeitsrechner/" target="_blank" class="helper-link">
+                    📊 Eigenverbrauch berechnen →
+                </a>
+            </div>
+            <div class="calc-input-group">
+                <label>Strompreis (ct/kWh)</label>
+                <input type="number" id="amort_elec_price" placeholder="z.B. 35" step="0.1">
+            </div>
+            <div class="calc-input-group">
+                <label>Einspeisevergütung (ct/kWh)</label>
+                <input type="number" id="amort_feed_in" placeholder="z.B. 8.2" step="0.1">
+            </div>
+            <div class="calc-input-group">
+                <label>Jährl. Betriebskosten (€)</label>
+                <input type="number" id="amort_operating" placeholder="z.B. 150" step="10">
+            </div>
+            <div class="calc-input-group">
+                <label>Betrachtungszeitraum (Jahre)</label>
+                <input type="number" id="amort_years" placeholder="z.B. 25" step="1">
+            </div>
+        </div>
+
+        <button id="calculateAmortBtn" class="btn-primary" style="width: 100%; margin-top: 15px;">📈 Amortisation berechnen</button>
+
+        <div id="amort_result" class="amort-result-box" style="display: none;">
+            <div class="amort-summary">
+                <div class="amort-card">
+                    <div class="amort-label">Amortisationszeit</div>
+                    <div class="amort-value" id="amort_payback_time">0 Jahre</div>
+                </div>
+                <div class="amort-card">
+                    <div class="amort-label">Jahresersparnis</div>
+                    <div class="amort-value" id="amort_annual_saving">0 €</div>
+                </div>
+                <div class="amort-card">
+                    <div class="amort-label">Gesamtgewinn (25 Jahre)</div>
+                    <div class="amort-value" id="amort_total_profit">0 €</div>
+                </div>
+            </div>
+            
+            <div class="chart-container">
+                <canvas id="amortChart"></canvas>
+            </div>
+        </div>
+
+        <div class="info-text" style="margin-top: 15px;">
+            <strong>💡 Hinweis:</strong> Wähle ein hinzugefügtes System aus dem Dropdown, um die Kosten und Leistung automatisch zu übernehmen. Für genaue Eigenverbrauchswerte nutze den HTW-Rechner.
+        </div>
+    </div>
+</div>
+
+
+        <!-- Bestehender Konfigurations-Bereich -->
+        <section class="config-area">
+            <div class="input-group main-title">
+                <label>Name des Angebots</label>
+                <input type="text" id="sysName" placeholder="z.B. Firma Solar-Blitz Angebot #1">
+            </div>
+
+            <div class="comp-row">
+                <div class="comp-box">
+                    <h3>1. Module</h3>
+                    <input type="text" id="pvBrand" placeholder="Hersteller">
+                    <div class="flex-row">
+                        <input type="number" id="pvPower" placeholder="Wp">
+                        <input type="number" id="pvCount" placeholder="Anz.">
+                    </div>
+                    <input type="number" id="pvSinglePrice" class="price-in" placeholder="Preis/Stk €">
+                    <input type="text" id="pvTech" placeholder="Techn. Daten">
+                </div>
+
+                <div class="comp-box">
+                    <h3>2. Wechselrichter</h3>
+                    <input type="text" id="wrBrand" placeholder="Modell">
+                    <input type="text" id="wrTech" placeholder="Details">
+                    <input type="number" id="wrPrice" class="price-in" placeholder="Preis €">
+                </div>
+
+                <div class="comp-box">
+                    <h3>3. Speicher</h3>
+                    <input type="text" id="batBrand" placeholder="Modell">
+                    <input type="text" id="batTech" placeholder="Kapazität/Typ">
+                    <input type="number" id="batPrice" class="price-in" placeholder="Preis €">
+                </div>
+
+                <div class="comp-box">
+                    <h3>4. Smart Meter</h3>
+                    <input type="text" id="smBrand" placeholder="Modell">
+                    <input type="text" id="smTech" placeholder="Details">
+                    <input type="number" id="smPrice" class="price-in" placeholder="Preis €">
+                </div>
+
+                <div class="comp-box">
+                    <h3>5. Montage</h3>
+                    <input type="text" id="mountBrand" placeholder="System">
+                    <input type="text" id="mountTech" placeholder="Details">
+                    <input type="number" id="mountPrice" class="price-in" placeholder="Preis €">
+                </div>
+            </div>
+
+            <div class="summary-bar">
+                <div class="sum-item">
+                    <label>Leistung</label>
+                    <input type="text" id="totalKWpDisplay" readonly>
+                </div>
+                <div class="sum-item">
+                    <label>Modul-Summe</label>
+                    <input type="text" id="pvTotalDisplay" readonly>
+                </div>
+                <div class="sum-item highlight">
+                    <label>Gesamtpreis</label>
+                    <input type="text" id="totalPriceDisplay" readonly>
+                </div>
+                <div class="sum-item">
+                    <label>Garantie</label>
+                    <input type="number" id="sysWarranty" placeholder="Jahre">
+                </div>
+                <button id="addSystemBtn" class="btn-primary">➕ System hinzufügen</button>
+            </div>
+        </section>
+
+        <section class="results">
+            <div id="systemsContainer" class="systems-flex"></div>
+        </section>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
